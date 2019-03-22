@@ -26,7 +26,7 @@ gem 'jbuilder', '~> 2.5'
 # gem 'image_processing', '~> 1.2'
 
 # Actual new steamchain things
-gem 'dotenv'
+gem 'dotenv-rails'
 gem 'steam-api'
 
 # Reduces boot times through caching; required in config/boot.rb
