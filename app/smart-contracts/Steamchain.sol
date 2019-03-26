@@ -1,9 +1,9 @@
-solidity ^0.5.7;
+pragma solidity ^0.5.7;
 
 contract Steamchain {
     uint256 public gameCount = 0;
     mapping(uint => Game) public games;
-    mapping(string => string) public gamesByAppID;
+    mapping(string => Game) public gamesByAppID;
 
     address owner;
 
@@ -30,8 +30,9 @@ contract Steamchain {
         onlyOwner
     {
         incrementCount();
-        games[gameCount] = Game(gameCount, _appID, _name);
-        gamesByAppID[_appID] = _name;
+        Game memory game = Game(gameCount, _appID, _name);
+        games[gameCount] = game;
+        gamesByAppID[_appID] = game;
     }
     
     function incrementCount() internal {
