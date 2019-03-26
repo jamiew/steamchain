@@ -10,20 +10,23 @@ namespace :steam do
     return json[app_id.to_s]['data']
   end
 
-  desc "Fetch list of Steam user's games"
+  desc "Fetch list of Steam user's games. Specify USER=foobar"
   task :test => :environment do
 
-    username = "jamiedubs"
+    username = ENV['USER'].present? ? ENV['USER'] : "jamiedubs"
+    puts "Fetching stats for #{username} ..."
+
     id = Steam::User.vanity_to_steamid(username)
     all_games = Steam::Apps.get_all # 75k+ records like {'appid'=>'...', 'name'=>'...'}
     all_games_by_id = {} # 75k+ is too big to use one Hash[*games.map{...}] call
     all_games.each{|a| all_games_by_id[a['appid']] = a['name'] }
-    puts "Found #{all_games_by_id.length} games on Steam"
+    puts "Found #{all_games_by_id.length} total games on Steam"
 
     result = Steam::Player.owned_games(id)
     games = result['games']
-    puts "Player game_count=#{result['game_count']}"
-    puts "Player games.length=#{games.length}"
+    # puts "result['game_count']=#{result['game_count']}"
+    # puts "games.length=#{games.length}"
+    raise "Uh oh, Steam 'game_count' and our games array don't match" if result['game_count'] != games.length
 
     my_games = {}
     games.each do |game|
@@ -31,10 +34,16 @@ namespace :steam do
       my_games[game_name] = game['playtime_forever']
     end
 
+    total_hours = my_games.inject(0){|t,game|
+      t += game[1]
+    }
+
     my_games.sort_by{|k,v| v}.each do |game,minutes|
       puts "#{game}: #{(minutes/60.0).round(1)} hours"
     end
 
+    puts "You own #{games.length} games"
+    puts "#{total_hours/60} total hours played (#{(total_hours/60/24.0).round(1)} days)"
     puts "Done"
   end
 
