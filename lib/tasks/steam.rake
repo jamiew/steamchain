@@ -16,42 +16,17 @@ namespace :steam do
     username = ENV['USERNAME'].present? ? ENV['USERNAME'] : "jamiedubs"
     puts "Fetching stats for #{username} ..."
 
-    id = Steam::User.vanity_to_steamid(username)
-    all_games = Steam::Apps.get_all # 75k+ records like {'appid'=>'...', 'name'=>'...'}
-    all_games_by_id = {} # 75k+ is too big to use one Hash[*games.map{...}] call
-    all_games.each{|a| all_games_by_id[a['appid']] = a['name'] }
-    puts "Found #{all_games_by_id.length} total games on Steam"
+    games = User.get_steam_games(username)
+    sorted = User.sort_steam_games(games)
 
-    result = Steam::Player.owned_games(id)
-    games = result['games']
-
-    if result.blank? || games.blank?
-      puts "No results, aborting"
-      puts result.inspect
-      exit 1
+    puts "Top 5 games:"
+    sorted.sort_by{|k,v| v}.reverse[0..4].each do |game,minutes|
+      puts "* #{game}: #{(minutes/60.0).round(1)} hours"
     end
 
-    if result['game_count'] != games.length
-      puts "result['game_count']=#{result['game_count']}"
-      puts "games.length=#{games.length}"
-      raise "Uh oh, Steam 'game_count' and our games array don't match"
-    end
+    total_hours = sorted.inject(0){|t,game| t += game[1] }
 
-    my_games = {}
-    games.each do |game|
-      game_name = all_games_by_id[game['appid']]
-      my_games[game_name] = game['playtime_forever']
-    end
-
-    total_hours = my_games.inject(0){|t,game|
-      t += game[1]
-    }
-
-    my_games.sort_by{|k,v| v}.each do |game,minutes|
-      puts "#{game}: #{(minutes/60.0).round(1)} hours"
-    end
-
-    puts "You own #{games.length} games"
+    puts "#{games.length} games owned"
     puts "#{total_hours/60} total hours played (#{(total_hours/60/24.0).round(1)} days)"
     puts "Done"
   end

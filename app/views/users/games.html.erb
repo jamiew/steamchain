@@ -3,3 +3,10 @@
 <p>You own <%= @games.length %> games
 
 <p><%= @total_hours/60 %> total hours played
+
+<ul>
+  <% my_games.sort_by{|k,v| v}.each do |game,minutes| -%>
+    <%= "#{game}: #{(minutes/60.0).round(1)} hours" %>
+  <% end -%>
+</ul>
+

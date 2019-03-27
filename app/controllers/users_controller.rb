@@ -22,32 +22,14 @@ class UsersController < ApplicationController
   def games
     # FIXME move all this logic into not-a-controller
     username = params[:id] || current_user.login
-    id = Steam::User.vanity_to_steamid(username)
 
-    all_games = Steam::Apps.get_all # 75k+ records like {'appid'=>'...', 'name'=>'...'}
-    all_games_by_id = {} # 75k+ is too big to use one Hash[*games.map{...}] call
-    all_games.each{|a| all_games_by_id[a['appid']] = a['name'] }
-    puts "Found #{all_games_by_id.length} total games on Steam"
-
-    result = Steam::Player.owned_games(id)
-
-    @games = result['games']
-    if result['game_count'] != @games.length
-      raise "Uh oh, Steam 'game_count' and our @games array's length don't match"
-    end
-
-    @sorted_games = {}
-    @games.each do |game|
-      game_name = all_games_by_id[game['appid']]
-      @sorted_games[game_name] = game['playtime_forever']
-    end
-
-    @total_hours = @sorted_games.inject(0){|t,game|
-      t += game[1]
-    }
+    @games = User.get_steam_games(username)
+    @sorted_games = User.sort_steam_games(@games)
+    @total_hours = @sorted_games.inject(0){|t,game| t += game[1] }
 
     @games = games
   end
+
 
 private
 
