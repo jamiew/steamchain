@@ -28,6 +28,7 @@ gem 'jbuilder', '~> 2.5'
 # Actual new steamchain things
 gem 'dotenv-rails'
 gem 'steam-api'
+gem 'omniauth-steam'
 
 # Reduces boot times through caching; required in config/boot.rb
 gem 'bootsnap', '>= 1.4.1', require: false
