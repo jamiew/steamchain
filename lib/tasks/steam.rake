@@ -10,10 +10,10 @@ namespace :steam do
     return json[app_id.to_s]['data']
   end
 
-  desc "Fetch list of Steam user's games. Specify USER=foobar"
+  desc "Fetch list of Steam user's games. Specify USERNAME=foobar"
   task :test => :environment do
 
-    username = ENV['USER'].present? ? ENV['USER'] : "jamiedubs"
+    username = ENV['USERNAME'].present? ? ENV['USERNAME'] : "jamiedubs"
     puts "Fetching stats for #{username} ..."
 
     id = Steam::User.vanity_to_steamid(username)
@@ -24,9 +24,18 @@ namespace :steam do
 
     result = Steam::Player.owned_games(id)
     games = result['games']
-    # puts "result['game_count']=#{result['game_count']}"
-    # puts "games.length=#{games.length}"
-    raise "Uh oh, Steam 'game_count' and our games array don't match" if result['game_count'] != games.length
+
+    if result.blank? || games.blank?
+      puts "No results, aborting"
+      puts result.inspect
+      exit 1
+    end
+
+    if result['game_count'] != games.length
+      puts "result['game_count']=#{result['game_count']}"
+      puts "games.length=#{games.length}"
+      raise "Uh oh, Steam 'game_count' and our games array don't match"
+    end
 
     my_games = {}
     games.each do |game|

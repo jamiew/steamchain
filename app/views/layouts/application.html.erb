@@ -10,6 +10,10 @@
   </head>
 
   <body>
+    <% if flash.present? -%>
+      <p>Flash: <%= flash.to_h.inspect %></p>
+    <% end -%>
+
     <%= yield %>
   </body>
 </html>
