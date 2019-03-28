@@ -3,11 +3,12 @@ class User < ApplicationRecord
   # TODO break out into Steam::User or something
   def self.get_all_steam_games
     Rails.logger.debug "User#get_all_steam_games ..."
-    return @all_games_by_id if @all_games_by_id.present?
-    all_games = Steam::Apps.get_all # 75k+ records like {'appid'=>'...', 'name'=>'...'}
-    @all_games_by_id = {} # 75k+ is too big to use one Hash[*games.map{...}] call
-    all_games.each{|a| @all_games_by_id[a['appid']] = a['name'] }
-    @all_games_by_id
+    Rails.cache.fetch('all_steam_games', expires: 1.day) {
+      all_games = Steam::Apps.get_all # 75k+ records like {'appid'=>'...', 'name'=>'...'}
+      all_games_by_id = {} # 75k+ is too big to use one Hash[*games.map{...}] call
+      all_games.each{|a| all_games_by_id[a['appid']] = a['name'] }
+      all_games_by_id
+    }
   end
 
   def self.get_steam_games(username)
